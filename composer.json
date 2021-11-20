@@ -12,5 +12,9 @@
       "phpcbf": [
         "phpcbf --standard=phpcs.xml ./"
       ]
+    },
+    "require": {
+        "kornrunner/keccak": "^1.1",
+        "simplito/elliptic-php": "^1.0"
     }
 }
