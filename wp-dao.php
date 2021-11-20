@@ -25,12 +25,18 @@ add_action(
 			array(
 				'methods'  => 'GET',
 				'callback' => __NAMESPACE__ . '\generate_message',
+				'arguments' => array(
+					'address' => array(
+						'type'        => 'string',
+						'description' => 'Wallet Address',
+					),
+				),
 			)
 		);
 	}
 );
 
-function generate_message() {
+function generate_message( $request ) {
 	$nonce     = wp_create_nonce();
 	$uri       = get_site_url();
 	$domain    = parse_url( $uri, PHP_URL_HOST );
@@ -41,7 +47,7 @@ function generate_message() {
 
 	// This is copy-pasted from https://github.com/ethereum/EIPs/blob/9a9c5d0abdaf5ce5c5dd6dc88c6d8db1b130e95b/EIPS/eip-4361.md#informal-message-template
 	$message = "{$domain} wants you to sign in with your Ethereum account:
-{$address}
+{$request['address']}
 
 {$statement}
 
@@ -50,13 +56,17 @@ Version: {$version}
 Nonce: {$nonce}
 Issued At: {$issued_at}
 ";
-	return $message;
+	return array(
+		'address' => $request['address'],
+		'message' => $message,
+	);
 }
 
 /**
  * Inject JavaScript to allow login with Ethereum
+ * We are setting 'wp-api-fetch' as a dependency, so we have the function wp.apiFetch ready in JS to call the API endpoint.
  */
 function login_stylesheet() {
-	wp_enqueue_script( 'custom-login', plugin_dir_url( __FILE__ ) . 'login-script.js', array(), time(), true );
+	wp_enqueue_script( 'custom-login', plugin_dir_url( __FILE__ ) . 'login-script.js', array( 'wp-api-fetch' ), time(), true );
 }
 add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\login_stylesheet' );

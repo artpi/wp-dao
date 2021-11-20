@@ -20,19 +20,19 @@ function triggerEthereumLogin() {
         console.warn( 'You need an ethereum wallet installed as an extension' );
         return;
     }
+
 	window.ethereum.request( { method: 'eth_requestAccounts' } )
-	.then( ret => {
-		// Here we request the nonce and check if user exists.
-		
-		console.log( ret[0], ethereum.selectedAddress );
-		return window.ethereum.request({
-            method: 'personal_sign',
-            params: [
-              `0x${toHex( 'nonce' )}`,
-              ethereum.selectedAddress,
-            ],
-          })
-	} )
+	.then( ret => wp.apiFetch( {
+        path: "wp-dao/message-to-sign?address=" + ret[0],
+        method: 'GET'
+    } ) )
+	.then( messageToSign => window.ethereum.request( {
+        method: 'personal_sign',
+        params: [
+          `0x${toHex( messageToSign.message )}`,
+          messageToSign.address,
+        ],
+      } ) )
 	.then( signature => console.log( signature ) )
 }
 
