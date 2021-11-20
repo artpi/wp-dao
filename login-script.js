@@ -1,11 +1,15 @@
 
 // Inject a button onto the login page:
+const ethsvg = '<svg style="height: 30px;float:left;margin-right:20px;" xmlns="http://www.w3.org/2000/svg" clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.41421" viewBox="170 30 220 350"><g fill-rule="nonzero" transform="matrix(.781253 0 0 .781253 180 37.1453)"><path d="m127.961 0-2.795 9.5v275.668l2.795 2.79 127.962-75.638z" fill="#343434"></path><path d="m127.962 0-127.962 212.32 127.962 75.639v-133.801z" fill="#8c8c8c"></path><path d="m127.961 312.187-1.575 1.92v98.199l1.575 4.601 128.038-180.32z" fill="#3c3c3b"></path><path d="m127.962 416.905v-104.72l-127.962-75.6z" fill="#8c8c8c"></path><path d="m127.961 287.958 127.96-75.637-127.96-58.162z" fill="#141414"></path><path d="m.001 212.321 127.96 75.637v-133.799z" fill="#393939"></path></g></svg>';
 
 document.addEventListener( 'DOMContentLoaded' , function() {    
     const loginInWithEthereum = document.createElement( 'BUTTON' );
-    loginInWithEthereum.innerText = "Log In With Ethereum";
+    loginInWithEthereum.innerHTML = ethsvg + "<div style='line-height:30px; text-transform:uppercase; float:right; font-weight:bold'>Sign In with Ethereum</div>";
     loginInWithEthereum.className = 'button button-large login-ethereum'; // First 2 classes are defined in WP
     loginInWithEthereum.addEventListener( 'click', triggerEthereumLogin );
+    loginInWithEthereum.style.padding = '20px';
+    loginInWithEthereum.style.margin = '30px auto';
+    loginInWithEthereum.style.display = 'block';    
     const currentLoginForm = document.getElementById( 'loginform' );
     currentLoginForm.insertAdjacentElement( 'afterend', loginInWithEthereum );
 
