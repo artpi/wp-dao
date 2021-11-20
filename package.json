@@ -1,0 +1,13 @@
+{
+	"name": "wp-dao",
+	"version": "0.0.1",
+	"description": "Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.",
+	"author": "artpi",
+	"license": "GPL-2.0-or-later",
+	"scripts": {
+		"env-start": "wp-env start"
+	},
+	"devDependencies": {
+		"@wordpress/env": "^3.0.0"
+	}
+}
