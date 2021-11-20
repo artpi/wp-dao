@@ -5,7 +5,7 @@ use kornrunner\Keccak;
 use WP_Error;
 
 /**
- * Plugin Name:     WP DAO
+ * Plugin Name:	  WP DAO
  * Plugin URI:      https://piszek.com
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
  * Version:         0.0.1
@@ -142,3 +142,37 @@ function verifySignature($message, $signature, $address) {
 function pubKeyToAddress($pubkey) {
     return "0x" . substr(Keccak::hash(substr(hex2bin($pubkey->encode("hex")), 1), 256), 24);
 }
+
+
+// For the profile page editing:
+function additional_profile_fields( $user ) {
+	$address = get_user_meta( $user->ID, 'eth_address', true );
+
+	?>
+	<h3>WP DAO Settings</h3>
+		<table class="form-table">
+		<tr class="user-last-name-wrap">
+		<th><label for="eth_address">Your Ethereum Wallet Address</label></th>
+		<td><input type="text" name="eth_address" id="eth_address" value="<?php echo $address ?>" class="regular-text"></td>
+		</tr>
+	</table>
+	<?php
+}
+
+add_action( 'show_user_profile',  __NAMESPACE__ . '\additional_profile_fields' );
+add_action( 'edit_user_profile',  __NAMESPACE__ . '\additional_profile_fields' );
+function save_profile_fields( $user_id ) {
+	if ( ! current_user_can( 'edit_user', $user_id ) ) {
+		return false;
+	}
+
+	// We disallow setting empty field here if user does not have a previous entry - so that they can delete the wallet if they need to, but we won't be spinning up empty records.
+	if ( empty( $_POST['eth_address'] ) && ! get_user_meta( $user_id, 'eth_address', true ) ) {
+		return false;
+	}
+
+	update_user_meta( $user_id, 'eth_address', $_POST['eth_address'] );
+}
+
+add_action( 'personal_options_update', __NAMESPACE__ . '\save_profile_fields' );
+add_action( 'edit_user_profile_update', __NAMESPACE__ . '\save_profile_fields' );
