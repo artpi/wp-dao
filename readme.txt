@@ -15,6 +15,9 @@ Enable signin with Ethereum on your site.
 This plugin enables "Sign-In with Ethereum" protocol on your WordPress site. Your users will be able to log in with their wallets - you never have to send them the password!
 Enable cryptographically secure login option now!
 
+More about sign-in with Ethereum protocol: https://login.xyz/
+A video of this plugin in action: https://twitter.com/artpi/status/1462143739686699018
+
 Future plans include:
 - Importing .eth username from ENS
 - Creating users based on them having a certain amount of governance tokens for a DAO, or a specific NFT
