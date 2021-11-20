@@ -72,7 +72,7 @@ Issued At: {$issued_at}
  * We are setting 'wp-api-fetch' as a dependency, so we have the function wp.apiFetch ready in JS to call the API endpoint.
  */
 function login_stylesheet() {
-	wp_enqueue_script( 'custom-login', plugin_dir_url( __FILE__ ) . 'login-script.js', array( 'wp-api-fetch' ), time(), true );
+	wp_enqueue_script( 'custom-login', plugin_dir_url( __FILE__ ) . 'login-script.js', array( 'wp-api-fetch' ), 1, true );
 }
 add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\login_stylesheet' );
 
