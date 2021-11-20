@@ -5,7 +5,7 @@ use kornrunner\Keccak;
 use WP_Error;
 
 /**
- * Plugin Name:	  WP DAO
+ * Plugin Name:		DAO Login
  * Plugin URI:      https://piszek.com
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
  * Version:         0.1.0

@@ -1,6 +1,6 @@
-=== WP DAO ===
+=== DAO Login ===
 Contributors:      artpi
-Tags:              signin, web3, ethereum
+Tags:              signin, web3, ethereum, login
 Requires at least: 5.3.1
 Tested up to:      5.3.1
 Stable tag:        0.1.0
