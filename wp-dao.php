@@ -53,3 +53,10 @@ Issued At: {$issued_at}
 	return $message;
 }
 
+/**
+ * Inject JavaScript to allow login with Ethereum
+ */
+function login_stylesheet() {
+	wp_enqueue_script( 'custom-login', plugin_dir_url( __FILE__ ) . 'login-script.js', array(), time(), true );
+}
+add_action( 'login_enqueue_scripts', __NAMESPACE__ . '\login_stylesheet' );
