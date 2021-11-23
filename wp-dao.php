@@ -31,7 +31,7 @@ add_action(
 				'arguments' => array(
 					'address' => array(
 						'type'        => 'string',
-						'description' => 'Wallet Address',
+						'description' => esc_attr__( 'Your Ethereum Wallet Address', 'wp-dao' ),
 					),
 				),
 			)
@@ -43,7 +43,7 @@ function generate_message( $request ) {
 	$nonce     = wp_create_nonce( 'eth_login' );
 	$uri       = get_site_url();
 	$domain    = parse_url( $uri, PHP_URL_HOST );
-	$statement = 'Log In with your Ethereum wallet'; // TBD
+	$statement = esc_attr__( 'Log In with your Ethereum wallet', 'wp-dao' ); // TBD
 	$version   = 1; // Per https://github.com/ethereum/EIPs/blob/9a9c5d0abdaf5ce5c5dd6dc88c6d8db1b130e95b/EIPS/eip-4361.md#example-message-to-be-signed
 	$issued_at = gmdate( 'Y-m-d\TH:i:s\Z' );
 
@@ -85,19 +85,20 @@ function authenticate( $user, $username, $password ) {
 		// Not an ETH login flow, we have nothing to do here.
 		return $user;
 	}
+	$nonce = sanitize_title( $_POST['eth_login_nonce'] );
 	$address = sanitize_title( $_POST['eth_login_address'] );
 	// We stored the message in the DB before sending it to the client.
 	$message   = get_transient( 'wp_dao_message_' . $address );
 	$signature = sanitize_title( $_POST['eth_login_signature'] );
 	delete_transient( 'wp_dao_message_' . $address ); // This is one-time thing and we want to clean it up.
 
-	if ( ! wp_verify_nonce( $_POST['eth_login_nonce'], 'eth_login' ) || ! $message ) {
-		return new \WP_Error( 'eth_login_nonce', 'ETH Nonce failed - are you refreshing like crazy?' );
+	if ( ! wp_verify_nonce( $nonce, 'eth_login' ) || ! $message ) {
+		return new \WP_Error( 'eth_login_nonce', esc_attr__( 'ETH Nonce failed - are you refreshing like crazy?', 'wp-dao' ) );
 	}
 
 	// Now let's check the signature.
-	if ( ! verifySignature( $message, $signature, $address ) ) {
-		return new \WP_Error( 'eth_login_sig', 'ETH Signature doesent match!' );
+	if ( ! verify_signature( $message, $signature, $address ) ) {
+		return new \WP_Error( 'eth_login_sig', esc_attr__( 'ETH Signature doesent match!', 'wp-dao' ) );
 	}
 
 	// User is Authenticated, but not authorized. Is this user even a user on our site?
@@ -110,7 +111,7 @@ function authenticate( $user, $username, $password ) {
 			'meta_value' => $address,
 		)
 	);
-	$users      = $user_query->get_results();
+	$users = $user_query->get_results();
 	if ( isset( $users[0] ) ) {
 		return $users[0];
 	}
@@ -121,9 +122,10 @@ add_filter( 'authenticate', __NAMESPACE__ . '\authenticate', 20, 3 );
 
 
 /**
+ * This will verify Ethereum signed message according to the specification.
  * From https://github.com/simplito/elliptic-php#verifying-ethereum-signature
  */
-function verifySignature( $message, $signature, $address ) {
+function verify_signature( $message, $signature, $address ) {
 	require_once __DIR__ . '/vendor/autoload.php';
 	$msglen = strlen( $message );
 	$hash   = Keccak::hash( "\x19Ethereum Signed Message:\n{$msglen}{$message}", 256 );
@@ -139,10 +141,10 @@ function verifySignature( $message, $signature, $address ) {
 	$ec     = new EC( 'secp256k1' );
 	$pubkey = $ec->recoverPubKey( $hash, $sign, $recid );
 
-	return $address == pubKeyToAddress( $pubkey );
+	return $address == pub_key_address( $pubkey );
 }
 
-function pubKeyToAddress( $pubkey ) {
+function pub_key_address( $pubkey ) {
 	return '0x' . substr( Keccak::hash( substr( hex2bin( $pubkey->encode( 'hex' ) ), 1 ), 256 ), 24 );
 }
 
@@ -152,11 +154,11 @@ function additional_profile_fields( $user ) {
 	$address = get_user_meta( $user->ID, 'eth_address', true );
 
 	?>
-	<h3>WP DAO Settings</h3>
+	<h3><?php esc_attr_e( 'DAO Login Settings', 'wp-dao' ); ?></h3>
 		<table class="form-table">
 		<tr class="user-last-name-wrap">
-		<th><label for="eth_address">Your Ethereum Wallet Address</label></th>
-		<td><input type="text" name="eth_address" id="eth_address" value="<?php echo $address; ?>" class="regular-text"></td>
+		<th><label for="eth_address"><?php esc_attr_e( 'Your Ethereum Wallet Address', 'wp-dao' ); ?></label></th>
+		<td><input type="text" name="eth_address" id="eth_address" value="<?php echo esc_attr( $address ); ?>" class="regular-text"></td>
 		</tr>
 	</table>
 	<?php
@@ -174,7 +176,7 @@ function save_profile_fields( $user_id ) {
 		return false;
 	}
 
-	update_user_meta( $user_id, 'eth_address', $_POST['eth_address'] );
+	update_user_meta( $user_id, 'eth_address', sanitize_title( $_POST['eth_address'] ) );
 }
 
 add_action( 'personal_options_update', __NAMESPACE__ . '\save_profile_fields' );
