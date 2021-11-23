@@ -1,12 +1,12 @@
 <?php
 namespace Artpi\WPDAO;
+
 use Elliptic\EC;
 use kornrunner\Keccak;
 use WP_Error;
 
 /**
- * Plugin Name:		DAO Login
- * Plugin URI:      https://piszek.com
+ * Plugin Name:     DAO Login
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
  * Version:         0.1.0
  * Author:          Artur Piszek (artpi)
@@ -26,8 +26,8 @@ add_action(
 			'wp-dao',
 			'/message-to-sign',
 			array(
-				'methods'  => 'GET',
-				'callback' => __NAMESPACE__ . '\generate_message',
+				'methods'   => 'GET',
+				'callback'  => __NAMESPACE__ . '\generate_message',
 				'arguments' => array(
 					'address' => array(
 						'type'        => 'string',
@@ -63,7 +63,7 @@ Issued At: {$issued_at}
 	return array(
 		'address' => $request['address'],
 		'message' => $message,
-		'nonce' => $nonce,
+		'nonce'   => $nonce,
 	);
 }
 
@@ -87,7 +87,7 @@ function authenticate( $user, $username, $password ) {
 	}
 	$address = sanitize_title( $_POST['eth_login_address'] );
 	// We stored the message in the DB before sending it to the client.
-	$message = get_transient( 'wp_dao_message_' . $address );
+	$message   = get_transient( 'wp_dao_message_' . $address );
 	$signature = sanitize_title( $_POST['eth_login_signature'] );
 	delete_transient( 'wp_dao_message_' . $address ); // This is one-time thing and we want to clean it up.
 
@@ -96,7 +96,7 @@ function authenticate( $user, $username, $password ) {
 	}
 
 	// Now let's check the signature.
-	if ( ! verifySignature( $message, $signature, $address) ) {
+	if ( ! verifySignature( $message, $signature, $address ) ) {
 		return new \WP_Error( 'eth_login_sig', 'ETH Signature doesent match!' );
 	}
 
@@ -105,15 +105,15 @@ function authenticate( $user, $username, $password ) {
 	// We will query users table:
 	$user_query = new \WP_User_Query(
 		array(
-			'number'    => 1,
-			'meta_key'	  => 'eth_address',
+			'number'     => 1,
+			'meta_key'   => 'eth_address',
 			'meta_value' => $address,
 		)
 	);
-	$users = $user_query->get_results();
-	if( isset( $users[0] ) ) {
+	$users      = $user_query->get_results();
+	if ( isset( $users[0] ) ) {
 		return $users[0];
-	} 
+	}
 	return $user;
 }
 
@@ -123,24 +123,27 @@ add_filter( 'authenticate', __NAMESPACE__ . '\authenticate', 20, 3 );
 /**
  * From https://github.com/simplito/elliptic-php#verifying-ethereum-signature
  */
-function verifySignature($message, $signature, $address) {
+function verifySignature( $message, $signature, $address ) {
 	require_once __DIR__ . '/vendor/autoload.php';
-    $msglen = strlen($message);
-    $hash   = Keccak::hash("\x19Ethereum Signed Message:\n{$msglen}{$message}", 256);
-    $sign   = ["r" => substr($signature, 2, 64), 
-               "s" => substr($signature, 66, 64)];
-    $recid  = ord(hex2bin(substr($signature, 130, 2))) - 27; 
-    if ($recid != ($recid & 1)) 
-        return false;
+	$msglen = strlen( $message );
+	$hash   = Keccak::hash( "\x19Ethereum Signed Message:\n{$msglen}{$message}", 256 );
+	$sign   = [
+		'r' => substr( $signature, 2, 64 ),
+		's' => substr( $signature, 66, 64 ),
+	];
+	$recid  = ord( hex2bin( substr( $signature, 130, 2 ) ) ) - 27;
+	if ( $recid != ( $recid & 1 ) ) {
+		return false;
+	}
 
-    $ec = new EC('secp256k1');
-    $pubkey = $ec->recoverPubKey($hash, $sign, $recid);
+	$ec     = new EC( 'secp256k1' );
+	$pubkey = $ec->recoverPubKey( $hash, $sign, $recid );
 
-    return $address == pubKeyToAddress($pubkey);
+	return $address == pubKeyToAddress( $pubkey );
 }
 
-function pubKeyToAddress($pubkey) {
-    return "0x" . substr(Keccak::hash(substr(hex2bin($pubkey->encode("hex")), 1), 256), 24);
+function pubKeyToAddress( $pubkey ) {
+	return '0x' . substr( Keccak::hash( substr( hex2bin( $pubkey->encode( 'hex' ) ), 1 ), 256 ), 24 );
 }
 
 
@@ -153,14 +156,14 @@ function additional_profile_fields( $user ) {
 		<table class="form-table">
 		<tr class="user-last-name-wrap">
 		<th><label for="eth_address">Your Ethereum Wallet Address</label></th>
-		<td><input type="text" name="eth_address" id="eth_address" value="<?php echo $address ?>" class="regular-text"></td>
+		<td><input type="text" name="eth_address" id="eth_address" value="<?php echo $address; ?>" class="regular-text"></td>
 		</tr>
 	</table>
 	<?php
 }
 
-add_action( 'show_user_profile',  __NAMESPACE__ . '\additional_profile_fields' );
-add_action( 'edit_user_profile',  __NAMESPACE__ . '\additional_profile_fields' );
+add_action( 'show_user_profile', __NAMESPACE__ . '\additional_profile_fields' );
+add_action( 'edit_user_profile', __NAMESPACE__ . '\additional_profile_fields' );
 function save_profile_fields( $user_id ) {
 	if ( ! current_user_can( 'edit_user', $user_id ) ) {
 		return false;
