@@ -8,12 +8,12 @@ use WP_Error;
 /**
  * Plugin Name:     DAO Login
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
- * Version:         0.1.0
+ * Version:         0.1.1
  * Author:          Artur Piszek (artpi)
  * Author URI:      https://piszek.com
  * License:         GPL-2.0-or-later
  * License URI:     https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:     wp-dao
+ * Text Domain:     dao-login
  *
  * @package         artpi
  */
@@ -23,7 +23,7 @@ add_action(
 	'rest_api_init',
 	function () {
 		register_rest_route(
-			'wp-dao',
+			'dao-login',
 			'/message-to-sign',
 			array(
 				'methods'   => 'GET',
@@ -31,7 +31,7 @@ add_action(
 				'arguments' => array(
 					'address' => array(
 						'type'        => 'string',
-						'description' => esc_attr__( 'Your Ethereum Wallet Address', 'wp-dao' ),
+						'description' => esc_attr__( 'Your Ethereum Wallet Address', 'dao-login' ),
 					),
 				),
 			)
@@ -43,7 +43,7 @@ function generate_message( $request ) {
 	$nonce     = wp_create_nonce( 'eth_login' );
 	$uri       = get_site_url();
 	$domain    = parse_url( $uri, PHP_URL_HOST );
-	$statement = esc_attr__( 'Log In with your Ethereum wallet', 'wp-dao' ); // TBD
+	$statement = esc_attr__( 'Log In with your Ethereum wallet', 'dao-login' ); // TBD
 	$version   = 1; // Per https://github.com/ethereum/EIPs/blob/9a9c5d0abdaf5ce5c5dd6dc88c6d8db1b130e95b/EIPS/eip-4361.md#example-message-to-be-signed
 	$issued_at = gmdate( 'Y-m-d\TH:i:s\Z' );
 
@@ -93,12 +93,12 @@ function authenticate( $user, $username, $password ) {
 	delete_transient( 'wp_dao_message_' . $address ); // This is one-time thing and we want to clean it up.
 
 	if ( ! wp_verify_nonce( $nonce, 'eth_login' ) || ! $message ) {
-		return new \WP_Error( 'eth_login_nonce', esc_attr__( 'ETH Nonce failed - are you refreshing like crazy?', 'wp-dao' ) );
+		return new \WP_Error( 'eth_login_nonce', esc_attr__( 'ETH Nonce failed - are you refreshing like crazy?', 'dao-login' ) );
 	}
 
 	// Now let's check the signature.
 	if ( ! verify_signature( $message, $signature, $address ) ) {
-		return new \WP_Error( 'eth_login_sig', esc_attr__( 'ETH Signature doesent match!', 'wp-dao' ) );
+		return new \WP_Error( 'eth_login_sig', esc_attr__( 'ETH Signature doesent match!', 'dao-login' ) );
 	}
 
 	// User is Authenticated, but not authorized. Is this user even a user on our site?
@@ -154,10 +154,10 @@ function additional_profile_fields( $user ) {
 	$address = get_user_meta( $user->ID, 'eth_address', true );
 
 	?>
-	<h3><?php esc_attr_e( 'DAO Login Settings', 'wp-dao' ); ?></h3>
+	<h3><?php esc_attr_e( 'DAO Login Settings', 'dao-login' ); ?></h3>
 		<table class="form-table">
 		<tr class="user-last-name-wrap">
-		<th><label for="eth_address"><?php esc_attr_e( 'Your Ethereum Wallet Address', 'wp-dao' ); ?></label></th>
+		<th><label for="eth_address"><?php esc_attr_e( 'Your Ethereum Wallet Address', 'dao-login' ); ?></label></th>
 		<td><input type="text" name="eth_address" id="eth_address" value="<?php echo esc_attr( $address ); ?>" class="regular-text"></td>
 		</tr>
 	</table>

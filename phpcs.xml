@@ -10,7 +10,7 @@
 	<rule ref="WordPress-Extra" />
 	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<property name="text_domain" type="array" value="wp-dao" />
+			<property name="text_domain" type="array" value="dao-login" />
 		</properties>
 	</rule>
 </ruleset>

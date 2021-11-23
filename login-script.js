@@ -29,7 +29,7 @@ function triggerEthereumLogin() {
 
 	window.ethereum.request( { method: 'eth_requestAccounts' } )
 	.then( ret => wp.apiFetch( {
-        path: "wp-dao/message-to-sign?address=" + ret[0],
+        path: "dao-login/message-to-sign?address=" + ret[0],
         method: 'GET'
     } ) )
 	.then( messageToSign => {

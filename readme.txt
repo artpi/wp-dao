@@ -1,9 +1,9 @@
 === DAO Login ===
 Contributors:      artpi
-Tags:              signin, web3, ethereum, login
+Tags:              signin, web3, ethereum, login, sso
 Requires at least: 5.3.1
-Tested up to:      5.3.1
-Stable tag:        0.1.0
+Tested up to:      5.8.2
+Stable tag:        0.1.1
 Requires PHP:      7.0.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,7 +25,7 @@ Future plans include:
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/wp-dao` directory, or install the plugin through the WordPress plugins screen directly.
+1. Upload the plugin files to the `/wp-content/plugins/dao-login` directory, or install the plugin through the WordPress plugins screen directly.
 1. Activate the plugin through the 'Plugins' screen in WordPress
 1. Now you can add Ethereum wallet addresses in the users screen (`/wp-admin/users.php`), in the "WP DAO" section
 1. Every user that has that field filled out, can log in with their wallet
@@ -39,3 +39,6 @@ Future plans include:
 
 = 0.1.0 =
 * Release
+= 0.1.1 =
+* Fix security issues pointed out in WordPress security review
+

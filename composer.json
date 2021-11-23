@@ -1,5 +1,5 @@
 {
-    "name": "artpi/wp-dao",
+    "name": "artpi/dao-login",
     "description": "Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.",
     "require-dev": {
       "squizlabs/php_codesniffer": "^3.4.0",
