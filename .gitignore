@@ -13,8 +13,10 @@ build/Release
 
 # Dependency directories
 node_modules/
-vendor/
-composer.lock
+vendor/wp-coding-standards/
+vendor/squizlabs/
+vendor/bin/
+vendor/*/tests/*
 
 
 # Optional npm cache directory
@@ -34,3 +36,6 @@ composer.lock
 
 # leftovers
 .wordpress-org/.placeholder
+
+
+.DS_Store
