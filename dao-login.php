@@ -8,7 +8,7 @@ use WP_Error;
 /**
  * Plugin Name:     DAO Login
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
- * Version:         0.1.1
+ * Version:         0.1.2
  * Author:          Artur Piszek (artpi)
  * Author URI:      https://piszek.com
  * License:         GPL-2.0-or-later
@@ -114,6 +114,8 @@ function authenticate( $user, $username, $password ) {
 	$users = $user_query->get_results();
 	if ( isset( $users[0] ) ) {
 		return $users[0];
+	} else {
+		return new \WP_Error( 'eth_login_nouser', esc_attr__( 'No user connected to this Ethereum wallet.', 'dao-login' ) );
 	}
 	return $user;
 }

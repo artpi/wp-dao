@@ -15,13 +15,21 @@ document.addEventListener( 'DOMContentLoaded' , function() {
 
 } );
 
+function ethereumScreenMessage( text ) {
+    const form = document.getElementById( 'loginform' );
+    const message = document.createElement( 'p' );
+    message.classList.add( 'message' );
+    message.innerText = text;
+    form.parentElement.insertBefore( message, form );
+}
+
 /**
  * User clicked "Log In with Ethereum";
  */
 function triggerEthereumLogin() {
     if ( ! window.ethereum ) {
         //TODO proper error message
-        console.warn( 'You need an ethereum wallet installed as an extension' );
+        ethereumScreenMessage( 'You need an Ethereum wallet installed as a browser extension. You can try Metamask or Coinbase Wallet extensions.' );
         return;
     }
     let nonce = '';
@@ -51,6 +59,13 @@ function triggerEthereumLogin() {
         currentLoginForm.appendChild( addLoginData( 'eth_login_nonce', nonce ) );
         currentLoginForm.appendChild( addLoginData( 'eth_login_signature', signature ) );
         currentLoginForm.submit();
+    } )
+    .catch( err => {
+        if ( err.code && err.code === 4001 ) {
+            ethereumScreenMessage( 'You have to confirm the signature. Please try again and confirm the sign request this time.' );
+        } else if ( err.message ) {
+            ethereumScreenMessage( err.message );
+        }
     } );
 }
 

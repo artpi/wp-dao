@@ -3,7 +3,7 @@ Contributors:      artpi
 Tags:              signin, web3, ethereum, login, sso
 Requires at least: 5.3.1
 Tested up to:      5.8.2
-Stable tag:        0.1.1
+Stable tag:        0.1.2
 Requires PHP:      7.0.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,8 +15,8 @@ Enable signin with Ethereum on your site.
 This plugin enables "Sign-In with Ethereum" protocol on your WordPress site. Your users will be able to log in with their wallets - you never have to send them the password!
 Enable cryptographically secure login option now!
 
-More about sign-in with Ethereum protocol: https://login.xyz/
-A video of this plugin in action: https://twitter.com/artpi/status/1462143739686699018
+- [More about sign-in with Ethereum protocol](https://login.xyz/)
+- [A video of this plugin in action](https://twitter.com/artpi/status/1462143739686699018)
 
 Future plans include:
 - Importing .eth username from ENS
