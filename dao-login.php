@@ -18,6 +18,7 @@ use WP_Error;
  * @package         artpi
  */
 
+require_once __DIR__ . '/dao-permissions.php';
 
 add_action(
 	'rest_api_init',
@@ -183,3 +184,4 @@ function save_profile_fields( $user_id ) {
 
 add_action( 'personal_options_update', __NAMESPACE__ . '\save_profile_fields' );
 add_action( 'edit_user_profile_update', __NAMESPACE__ . '\save_profile_fields' );
+
