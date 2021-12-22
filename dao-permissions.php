@@ -57,12 +57,12 @@ class DAOLogin {
 			$section_id,
 			array(
 				'num' => $t,
-				'id' => 'token_' . $id  . '_id',
+				'id'  => 'token_' . $id . '_id',
 				'val' => $values['id'],
 			)
 		);
 
-		$this->fields_to_save['tokens'][ $id ][ 'id' ] = 'token_' . $id  . '_id';
+		$this->fields_to_save['tokens'][ $id ]['id'] = 'token_' . $id . '_id';
 
 		add_settings_field(
 			$id . '_label', // id
@@ -72,12 +72,12 @@ class DAOLogin {
 			$section_id,
 			array(
 				'num' => $t,
-				'id' => 'token_' . $id  . '_label',
+				'id'  => 'token_' . $id . '_label',
 				'val' => $values['label'],
 
 			)
 		);
-		$this->fields_to_save['tokens'][ $id ][ 'label' ] = 'token_' . $id  . '_label';
+		$this->fields_to_save['tokens'][ $id ]['label'] = 'token_' . $id . '_label';
 
 		$roles = get_editable_roles();
 		foreach ( $roles as $role_id => $role ) {
@@ -89,8 +89,8 @@ class DAOLogin {
 				$section_id, // section
 				array(
 					'num' => $t,
-					'id' => "token_{$id}_role_{$role_id}",
-					'val' => $values["role_{$role_id}"],
+					'id'  => "token_{$id}_role_{$role_id}",
+					'val' => $values[ "role_{$role_id}" ],
 				)
 			);
 			$this->fields_to_save['tokens'][ $id ][ "role_{$role_id}" ] = "token_{$id}_role_{$role_id}";
@@ -153,8 +153,8 @@ class DAOLogin {
 
 		foreach ( $this->fields_to_save['tokens'] as $token_id => $fields ) {
 			foreach ( $fields as $key => $field ) {
-				if( $key && isset( $input[ $field ] ) ) {
-					$sanitary_values['tokens'][ $input["token_{$token_id}_id"] ][ $key ] = sanitize_text_field( $input[ $field ] );
+				if ( $key && isset( $input[ $field ] ) ) {
+					$sanitary_values['tokens'][ $input[ "token_{$token_id}_id" ] ][ $key ] = sanitize_text_field( $input[ $field ] );
 				}
 			}
 		}
