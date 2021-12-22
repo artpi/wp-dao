@@ -2,14 +2,31 @@
 namespace Artpi\WPDAO;
 
 class DAOLogin {
-	private $dao_login_options;
+	public $dao_login_options;
 	private $fields_to_save;
+	public static $instance;
 
-	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'dao_login_add_plugin_page' ) );
-		add_action( 'admin_init', array( $this, 'dao_login_page_init' ) );
+	public static function singleton() {
+		self::$instance = new DAOLogin();
 	}
 
+	public function __construct() {
+		add_action( 'init', array( $this, 'init' ) );
+	}
+
+
+
+	public function init() {
+		$this->dao_login_options = get_option( 'dao_login' );
+		if ( is_admin() ) {
+			add_action( 'admin_menu', array( $this, 'dao_login_add_plugin_page' ) );
+			add_action( 'admin_init', array( $this, 'dao_login_page_init' ) );
+		}
+	}
+
+	/**
+	 * The following are administrative pages for settings
+	 */
 	public function dao_login_add_plugin_page() {
 		add_options_page(
 			'DAO Login', // page_title
@@ -99,8 +116,6 @@ class DAOLogin {
 	}
 
 	public function dao_login_page_init() {
-		$this->dao_login_options = get_option( 'dao_login' );
-
 		register_setting(
 			'dao_login_option_group', // option_group
 			'dao_login', // option_name
@@ -189,6 +204,4 @@ class DAOLogin {
 	}
 
 }
-if ( is_admin() ) {
-	$dao_login = new DAOLogin();
-}
+DAOLogin::singleton();
