@@ -7,6 +7,17 @@ class Web3 {
 	public function __construct( $settings ) {
 		$this->settings = $settings;
 	}
+
+	private function hash2number( $hex ) {
+		$hex = substr( $hex, 2 ); // to strip 0x;
+		$ret = 0;
+		$len = strlen( $hex );
+		for ( $i = 1; $i <= $len; $i++ ) {
+			$ret = bcadd( $ret, bcmul( strval( hexdec( $hex[ $i - 1 ] ) ), bcpow( '16', strval( $len - $i ) ) ) );
+		}
+		return $ret / pow( 10, 18 ); // Because numbers are in Wei (10^-18)
+	}
+
 	public function api( $data = [] ) {
 		$data = array_merge(
 			array(
@@ -37,6 +48,9 @@ class Web3 {
 		$response = $this->api( $payload );
 		$json = json_decode( $response );
 		$balances = $json->result->tokenBalances;
+		foreach( $balances as $balance ) {
+			$balance->tokenBalance = $this->hash2number( $balance->tokenBalance );
+		}
 		return $balances;
 	}
 }
