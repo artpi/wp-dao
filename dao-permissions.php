@@ -1,27 +1,22 @@
 <?php
 namespace Artpi\WPDAO;
 
-class DAOLogin {
+class Settings {
 	public $dao_login_options;
 	private $fields_to_save;
 	public static $instance;
 
-	public static function singleton() {
-		self::$instance = new DAOLogin();
-	}
 
 	public function __construct() {
-		add_action( 'init', array( $this, 'init' ) );
-	}
-
-
-
-	public function init() {
 		$this->dao_login_options = get_option( 'dao_login' );
 		if ( is_admin() ) {
 			add_action( 'admin_menu', array( $this, 'dao_login_add_plugin_page' ) );
 			add_action( 'admin_init', array( $this, 'dao_login_page_init' ) );
 		}
+	}
+
+	public function get_alchemy_url() {
+		return $this->dao_login_options['alchemy_url'];
 	}
 
 	/**
@@ -204,4 +199,3 @@ class DAOLogin {
 	}
 
 }
-DAOLogin::singleton();
