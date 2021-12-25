@@ -1,7 +1,6 @@
 <?php
 namespace Artpi\WPDAO;
 
-
 /**
  * Plugin Name:     DAO Login
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
@@ -102,10 +101,10 @@ function authenticate( $user, $username, $password ) {
 	$users      = $user_query->get_results();
 	if ( isset( $users[0] ) ) {
 		return $users[0];
-	} else if ( DaoLogin::$settings->is_registering_enabled() ) {
+	} elseif ( DaoLogin::$settings->is_registering_enabled() ) {
 		// Allow registering through the API.
 		$balances = DaoLogin::$web3->get_token_balances( $address, DaoLogin::$settings->get_token_list() );
-		$role = balances_to_role( DaoLogin::$settings->get_tokens_array(), $balances );
+		$role     = balances_to_role( DaoLogin::$settings->get_tokens_array(), $balances );
 		if ( $role ) {
 			$user_id = wp_create_user( $address, wp_generate_password(), "{$address}@ethmail.cc" );
 			add_user_meta( $user_id, 'eth_address', $address, true );

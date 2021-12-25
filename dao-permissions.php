@@ -191,11 +191,11 @@ class Settings {
 	}
 
 	public function dao_login_section_balance( $arg ) {
-		if( preg_match( '#dao_login_setting_section_(0x[0-9a-z]+)#is', $arg['id'], $match ) ) {
-			$token=$match[1];
+		if ( preg_match( '#dao_login_setting_section_(0x[0-9a-z]+)#is', $arg['id'], $match ) ) {
+			$token   = $match[1];
 			$address = get_user_meta( get_current_user_id(), 'eth_address', true );
 			$balance = DaoLogin::$web3->get_token_balances( $address, [ $token ] );
-			if( isset( $balance[0]->tokenBalance ) ) {
+			if ( isset( $balance[0]->tokenBalance ) ) {
 				echo "<div><b>Your balance:</b> {$balance[0]->tokenBalance} </div>";
 			}
 		}

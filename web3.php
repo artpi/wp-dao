@@ -1,5 +1,6 @@
 <?php
 namespace Artpi\WPDAO;
+
 use Elliptic\EC;
 use kornrunner\Keccak;
 use WP_Error;
