@@ -2,10 +2,8 @@
 namespace Artpi\WPDAO;
 
 class Settings {
-	public $dao_login_options;
+	private $dao_login_options;
 	private $fields_to_save;
-	public static $instance;
-
 
 	public function __construct() {
 		$this->dao_login_options = get_option( 'dao_login' );
@@ -17,6 +15,24 @@ class Settings {
 
 	public function get_alchemy_url() {
 		return $this->dao_login_options['alchemy_url'];
+	}
+
+	public function is_registering_enabled() {
+		return (
+			isset( $this->dao_login_options['allow_register'] ) &&
+			$this->dao_login_options['allow_register'] &&
+			isset( $this->dao_login_options['alchemy_url'] ) &&
+			isset( $this->dao_login_options['tokens'] ) &&
+			count( $this->dao_login_options['tokens'] ) > 0
+		);
+	}
+
+	public function get_token_list() {
+		return array_keys( $this->dao_login_options['tokens'] );
+	}
+
+	public function get_tokens_array() {
+		return $this->dao_login_options['tokens'];
 	}
 
 	/**
@@ -56,7 +72,7 @@ class Settings {
 		add_settings_section(
 			$section_id, // id
 			$label, // title
-			array( $this, 'dao_login_section_info' ), // callback
+			array( $this, $id !== 'new' ? 'dao_login_section_balance' : 'dao_login_section_info' ), // callback
 			'dao-login-admin' // page
 		);
 
@@ -163,17 +179,26 @@ class Settings {
 
 		foreach ( $this->fields_to_save['tokens'] as $token_id => $fields ) {
 			foreach ( $fields as $key => $field ) {
-				if ( $key && isset( $input[ $field ] ) ) {
+				if ( $key && isset( $input[ "token_{$token_id}_id" ], $input[ $field ] ) && $input[ "token_{$token_id}_id" ] ) {
 					$sanitary_values['tokens'][ $input[ "token_{$token_id}_id" ] ][ $key ] = sanitize_text_field( $input[ $field ] );
 				}
 			}
 		}
-
 		return $sanitary_values;
 	}
 
-	public function dao_login_section_info() {
+	public function dao_login_section_info( $arg ) {
+	}
 
+	public function dao_login_section_balance( $arg ) {
+		if( preg_match( '#dao_login_setting_section_(0x[0-9a-z]+)#is', $arg['id'], $match ) ) {
+			$token=$match[1];
+			$address = get_user_meta( get_current_user_id(), 'eth_address', true );
+			$balance = DaoLogin::$web3->get_token_balances( $address, [ $token ] );
+			if( isset( $balance[0]->tokenBalance ) ) {
+				echo "<div><b>Your balance:</b> {$balance[0]->tokenBalance} </div>";
+			}
+		}
 	}
 
 	public function allow_register_callback() {

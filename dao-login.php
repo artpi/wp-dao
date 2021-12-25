@@ -1,9 +1,6 @@
 <?php
 namespace Artpi\WPDAO;
 
-use Elliptic\EC;
-use kornrunner\Keccak;
-use WP_Error;
 
 /**
  * Plugin Name:     DAO Login
@@ -29,16 +26,11 @@ class DaoLogin {
 		self::$settings = new Settings();
 		self::$web3     = new Web3( self::$settings );
 	}
-	public static function hooks() {
-		add_action( 'init', array( __NAMESPACE__ . '/' . static::class, 'init' ), 0 );
-	}
 }
-DaoLogin::hooks();
+add_action( 'init', __NAMESPACE__ . '\DaoLogin::init' );
 
-// \WP_CLI::add_command( 'foo', function() {
-// 	$settings = new Settings();
-// 	$web3 = new Web3( $settings );
-// 	var_dump( $web3->get_token_balances( '0xDCb5a77DCC7CAe7F2c0b2235Ff744398C35377D4', ['0x7a58c0be72be218b41c608b7fe7c5bb630736c71'] ) );
+// \WP_CLI::add_command( 'get_token_balances', function() {
+// 	var_dump( DaoLogin::$web3->get_token_balances( '0xDCb5a77DCC7CAe7F2c0b2235Ff744398C35377D4', ['0x7a58c0be72be218b41c608b7fe7c5bb630736c71'] ) );
 // } );
 
 
@@ -110,6 +102,17 @@ function authenticate( $user, $username, $password ) {
 	$users      = $user_query->get_results();
 	if ( isset( $users[0] ) ) {
 		return $users[0];
+	} else if ( DaoLogin::$settings->is_registering_enabled() ) {
+		// Allow registering through the API.
+		$balances = DaoLogin::$web3->get_token_balances( $address, DaoLogin::$settings->get_token_list() );
+		$role = balances_to_role( DaoLogin::$settings->get_tokens_array(), $balances );
+		if ( $role ) {
+			$user_id = wp_create_user( $address, wp_generate_password(), "{$address}@ethmail.cc" );
+			add_user_meta( $user_id, 'eth_address', $address, true );
+			return get_user_by( 'ID', $user_id );
+		} else {
+			return new \WP_Error( 'eth_login_insufficient_funds', esc_attr__( 'Insufficient tokens to register on this site.', 'dao-login' ) );
+		}
 	} else {
 		return new \WP_Error( 'eth_login_nouser', esc_attr__( 'No user connected to this Ethereum wallet.', 'dao-login' ) );
 	}
@@ -117,6 +120,27 @@ function authenticate( $user, $username, $password ) {
 }
 
 add_filter( 'authenticate', __NAMESPACE__ . '\authenticate', 20, 3 );
+
+
+function balances_to_role( $tokens, $balances ) {
+	$roles = wp_roles()->roles;
+	// I am assuming roles are going down with the order of importance.
+	foreach ( $roles as $role_id => $role ) {
+		foreach ( $tokens as $token_id => $token ) {
+			foreach ( $balances as $balance ) {
+				if (
+					$balance->contractAddress === $token_id &&
+					isset( $token[ "role_{$role_id}" ] ) &&
+					$balance->tokenBalance >= $token[ "role_{$role_id}" ]
+				) {
+					return $role_id;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 
 
 // For the profile page editing:

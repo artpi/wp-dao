@@ -1,5 +1,8 @@
 <?php
 namespace Artpi\WPDAO;
+use Elliptic\EC;
+use kornrunner\Keccak;
+use WP_Error;
 
 class Web3 {
 	private $settings;
@@ -39,7 +42,8 @@ class Web3 {
 		);
 		return wp_remote_retrieve_body( $response );
 	}
-	function get_token_balances( $owner, $tokens ) {
+
+	public function get_token_balances( $owner, $tokens ) {
 		// TODO need some error hangling here.
 		$payload  = [
 			'method' => 'alchemy_getTokenBalances',
