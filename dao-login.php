@@ -28,11 +28,6 @@ class DaoLogin {
 }
 add_action( 'init', __NAMESPACE__ . '\DaoLogin::init' );
 
-// \WP_CLI::add_command( 'get_token_balances', function() {
-// 	var_dump( DaoLogin::$web3->get_token_balances( '0xDCb5a77DCC7CAe7F2c0b2235Ff744398C35377D4', ['0x7a58c0be72be218b41c608b7fe7c5bb630736c71'] ) );
-// } );
-
-
 add_action(
 	'rest_api_init',
 	function () {
