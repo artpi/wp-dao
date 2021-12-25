@@ -1,10 +1,6 @@
 <?php
 namespace Artpi\WPDAO;
 
-use Elliptic\EC;
-use kornrunner\Keccak;
-use WP_Error;
-
 /**
  * Plugin Name:     DAO Login
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
@@ -18,6 +14,19 @@ use WP_Error;
  * @package         artpi
  */
 
+require_once __DIR__ . '/dao-permissions.php';
+require_once __DIR__ . '/web3.php';
+
+class DaoLogin {
+	public static $settings;
+	public static $web3;
+
+	public static function init() {
+		self::$settings = new Settings();
+		self::$web3     = new Web3( self::$settings );
+	}
+}
+add_action( 'init', __NAMESPACE__ . '\DaoLogin::init' );
 
 add_action(
 	'rest_api_init',
@@ -27,7 +36,7 @@ add_action(
 			'/message-to-sign',
 			array(
 				'methods'   => 'GET',
-				'callback'  => __NAMESPACE__ . '\generate_message',
+				'callback'  => __NAMESPACE__ . '\Web3::generate_message',
 				'arguments' => array(
 					'address' => array(
 						'type'        => 'string',
@@ -39,33 +48,6 @@ add_action(
 	}
 );
 
-function generate_message( $request ) {
-	$nonce     = wp_create_nonce( 'eth_login' );
-	$uri       = get_site_url();
-	$domain    = parse_url( $uri, PHP_URL_HOST );
-	$statement = esc_attr__( 'Log In with your Ethereum wallet', 'dao-login' ); // TBD
-	$version   = 1; // Per https://github.com/ethereum/EIPs/blob/9a9c5d0abdaf5ce5c5dd6dc88c6d8db1b130e95b/EIPS/eip-4361.md#example-message-to-be-signed
-	$issued_at = gmdate( 'Y-m-d\TH:i:s\Z' );
-
-	// This is copy-pasted from https://github.com/ethereum/EIPs/blob/9a9c5d0abdaf5ce5c5dd6dc88c6d8db1b130e95b/EIPS/eip-4361.md#informal-message-template
-	$message = "{$domain} wants you to sign in with your Ethereum account:
-{$request['address']}
-
-{$statement}
-
-URI: {$uri}
-Version: {$version}
-Nonce: {$nonce}
-Issued At: {$issued_at}
-";
-	// This attempt will auto expire in 5 minutes. This way, we'll save the message server-side to check after the login attempt.
-	set_transient( 'wp_dao_message_' . $request['address'], $message, 60 * 5 );
-	return array(
-		'address' => $request['address'],
-		'message' => $message,
-		'nonce'   => $nonce,
-	);
-}
 
 /**
  * Inject JavaScript to allow login with Ethereum
@@ -85,7 +67,7 @@ function authenticate( $user, $username, $password ) {
 		// Not an ETH login flow, we have nothing to do here.
 		return $user;
 	}
-	$nonce = sanitize_title( $_POST['eth_login_nonce'] );
+	$nonce   = sanitize_title( $_POST['eth_login_nonce'] );
 	$address = sanitize_title( $_POST['eth_login_address'] );
 	// We stored the message in the DB before sending it to the client.
 	$message   = get_transient( 'wp_dao_message_' . $address );
@@ -97,7 +79,7 @@ function authenticate( $user, $username, $password ) {
 	}
 
 	// Now let's check the signature.
-	if ( ! verify_signature( $message, $signature, $address ) ) {
+	if ( ! Web3::verify_signature( $message, $signature, $address ) ) {
 		return new \WP_Error( 'eth_login_sig', esc_attr__( 'ETH Signature doesent match!', 'dao-login' ) );
 	}
 
@@ -111,9 +93,20 @@ function authenticate( $user, $username, $password ) {
 			'meta_value' => $address,
 		)
 	);
-	$users = $user_query->get_results();
+	$users      = $user_query->get_results();
 	if ( isset( $users[0] ) ) {
 		return $users[0];
+	} elseif ( DaoLogin::$settings->is_registering_enabled() ) {
+		// Allow registering through the API.
+		$balances = DaoLogin::$web3->get_token_balances( $address, DaoLogin::$settings->get_token_list() );
+		$role     = balances_to_role( DaoLogin::$settings->get_tokens_array(), $balances );
+		if ( $role ) {
+			$user_id = wp_create_user( $address, wp_generate_password(), "{$address}@ethmail.cc" );
+			add_user_meta( $user_id, 'eth_address', $address, true );
+			return get_user_by( 'ID', $user_id );
+		} else {
+			return new \WP_Error( 'eth_login_insufficient_funds', esc_attr__( 'Insufficient tokens to register on this site.', 'dao-login' ) );
+		}
 	} else {
 		return new \WP_Error( 'eth_login_nouser', esc_attr__( 'No user connected to this Ethereum wallet.', 'dao-login' ) );
 	}
@@ -123,32 +116,25 @@ function authenticate( $user, $username, $password ) {
 add_filter( 'authenticate', __NAMESPACE__ . '\authenticate', 20, 3 );
 
 
-/**
- * This will verify Ethereum signed message according to the specification.
- * From https://github.com/simplito/elliptic-php#verifying-ethereum-signature
- */
-function verify_signature( $message, $signature, $address ) {
-	require_once __DIR__ . '/vendor/autoload.php';
-	$msglen = strlen( $message );
-	$hash   = Keccak::hash( "\x19Ethereum Signed Message:\n{$msglen}{$message}", 256 );
-	$sign   = [
-		'r' => substr( $signature, 2, 64 ),
-		's' => substr( $signature, 66, 64 ),
-	];
-	$recid  = ord( hex2bin( substr( $signature, 130, 2 ) ) ) - 27;
-	if ( $recid != ( $recid & 1 ) ) {
-		return false;
+function balances_to_role( $tokens, $balances ) {
+	$roles = wp_roles()->roles;
+	// I am assuming roles are going down with the order of importance.
+	foreach ( $roles as $role_id => $role ) {
+		foreach ( $tokens as $token_id => $token ) {
+			foreach ( $balances as $balance ) {
+				if (
+					$balance->contractAddress === $token_id &&
+					isset( $token[ "role_{$role_id}" ] ) &&
+					$balance->tokenBalance >= $token[ "role_{$role_id}" ]
+				) {
+					return $role_id;
+				}
+			}
+		}
 	}
-
-	$ec     = new EC( 'secp256k1' );
-	$pubkey = $ec->recoverPubKey( $hash, $sign, $recid );
-
-	return $address == pub_key_address( $pubkey );
+	return false;
 }
 
-function pub_key_address( $pubkey ) {
-	return '0x' . substr( Keccak::hash( substr( hex2bin( $pubkey->encode( 'hex' ) ), 1 ), 256 ), 24 );
-}
 
 
 // For the profile page editing:
@@ -183,3 +169,4 @@ function save_profile_fields( $user_id ) {
 
 add_action( 'personal_options_update', __NAMESPACE__ . '\save_profile_fields' );
 add_action( 'edit_user_profile_update', __NAMESPACE__ . '\save_profile_fields' );
+
