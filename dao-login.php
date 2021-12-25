@@ -21,18 +21,25 @@ use WP_Error;
 require_once __DIR__ . '/dao-permissions.php';
 require_once __DIR__ . '/web3.php';
 
+class DaoLogin {
+	public static $settings;
+	public static $web3;
 
-add_action( 'init', __NAMESPACE__ . '\init' );
-
-function init() {
-	$settings = new Settings();
-	$web3 = new Web3( $settings );
+	public static function init() {
+		self::$settings = new Settings();
+		self::$web3 = new Web3( self::$settings );
+	}
+	public static function hooks() {
+		add_action( 'init', array( __NAMESPACE__ . '/' . static::class, 'init' ), 0 );
+	}
 }
-\WP_CLI::add_command( 'foo', function() {
-	$settings = new Settings();
-	$web3 = new Web3( $settings );
-	var_dump( $web3->get_token_balances( '0xDCb5a77DCC7CAe7F2c0b2235Ff744398C35377D4', ['0x7a58c0be72be218b41c608b7fe7c5bb630736c71'] ) );
-} );
+DaoLogin::hooks();
+
+// \WP_CLI::add_command( 'foo', function() {
+// 	$settings = new Settings();
+// 	$web3 = new Web3( $settings );
+// 	var_dump( $web3->get_token_balances( '0xDCb5a77DCC7CAe7F2c0b2235Ff744398C35377D4', ['0x7a58c0be72be218b41c608b7fe7c5bb630736c71'] ) );
+// } );
 
 
 add_action(
