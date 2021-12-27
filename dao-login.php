@@ -15,7 +15,10 @@ namespace Artpi\WPDAO;
  */
 
 require_once __DIR__ . '/dao-permissions.php';
+require_once __DIR__ . '/members-only.php';
 require_once __DIR__ . '/web3.php';
+
+register_activation_hook( __FILE__, __NAMESPACE__ . '\add_roles_on_plugin_activation' );
 
 class DaoLogin {
 	public static $settings;
@@ -103,7 +106,9 @@ function authenticate( $user, $username, $password ) {
 		if ( $role ) {
 			$user_id = wp_create_user( $address, wp_generate_password(), "{$address}@ethmail.cc" );
 			add_user_meta( $user_id, 'eth_address', $address, true );
-			return get_user_by( 'ID', $user_id );
+			$user = get_user_by( 'ID', $user_id );
+			$user->set_role( $role );
+			return $user;
 		} else {
 			return new \WP_Error( 'eth_login_insufficient_funds', esc_attr__( 'Insufficient tokens to register on this site.', 'dao-login' ) );
 		}
@@ -124,7 +129,7 @@ function balances_to_role( $tokens, $balances ) {
 			foreach ( $balances as $balance ) {
 				if (
 					$balance->contractAddress === $token_id &&
-					isset( $token[ "role_{$role_id}" ] ) &&
+					! empty( $token[ "role_{$role_id}" ] ) &&
 					$balance->tokenBalance >= $token[ "role_{$role_id}" ]
 				) {
 					return $role_id;
