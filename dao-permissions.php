@@ -84,7 +84,6 @@ class Settings {
 			'dao-login-admin', // page
 			$section_id,
 			array(
-				'num' => $t,
 				'id'  => 'token_' . $id . '_id',
 				'val' => $values['id'],
 			)
@@ -99,7 +98,6 @@ class Settings {
 			'dao-login-admin', // page
 			$section_id,
 			array(
-				'num' => $t,
 				'id'  => 'token_' . $id . '_label',
 				'val' => $values['label'],
 
