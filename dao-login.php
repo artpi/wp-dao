@@ -4,7 +4,7 @@ namespace Artpi\WPDAO;
 /**
  * Plugin Name:     DAO Login
  * Description:     Make your site web3-ready: Log in with Ethereum or create users based on governance tokens.
- * Version:         0.1.2
+ * Version:         0.2.1
  * Author:          Artur Piszek (artpi)
  * Author URI:      https://piszek.com
  * License:         GPL-2.0-or-later
