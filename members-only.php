@@ -11,7 +11,7 @@ function add_roles_on_plugin_activation() {
 }
 
 // Add simple_role capabilities, priority must be after the initial role definition.
-add_action( 'init', __NAMESPACE__ . 'members_only_caps', 11 );
+add_action( 'init', __NAMESPACE__ . '\add_roles_on_plugin_activation', 11 );
 
 
 add_action(
