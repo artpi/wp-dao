@@ -158,11 +158,13 @@ class Settings {
 			return;
 		}
 
+		//Added if statement to check to see if fields are empty before setting the values? Prevents a foreach warning. -JVJ 1/15/2022
+		if (! $this->dao_login_options['tokens'] == ""){
 		foreach ( $this->dao_login_options['tokens'] as $id => $values ) {
 			$this->settings_for_tracked_token( $id, $values['label'], $values );
 		}
 		$this->settings_for_tracked_token( 'new', 'New Token' );
-
+		}
 	}
 
 	public function dao_login_sanitize( $input ) {
